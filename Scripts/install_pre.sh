@@ -13,12 +13,10 @@ fi
 
 flg_DryRun=${flg_DryRun:-0}
 
-if [ "${HYDE_IS_ARCHLIKE:-0}" -ne 1 ]; then
-    print_log -sec "distro" -crit "unsupported" "Detected '${HYDE_DISTRO_NAME:-unknown}' (${HYDE_DISTRO_ID:-unknown}). HyDE installer supports Arch-like distros (Arch/CachyOS/etc)."
-    exit 1
-fi
-
 print_log -sec "distro" -stat "detected" "${HYDE_DISTRO_NAME:-unknown} (${HYDE_DISTRO_ID:-unknown})"
+if [ "${HYDE_IS_ARCHLIKE:-0}" -ne 1 ]; then
+    print_log -sec "distro" -warn "non-archlike" "Proceeding anyway, but this installer assumes pacman-based systems."
+fi
 
 # grub
 if pkg_installed grub && [ -f /boot/grub/grub.cfg ]; then

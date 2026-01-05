@@ -13,6 +13,13 @@ fi
 
 flg_DryRun=${flg_DryRun:-0}
 
+if [ "${HYDE_IS_ARCHLIKE:-0}" -ne 1 ]; then
+    print_log -sec "distro" -crit "unsupported" "Detected '${HYDE_DISTRO_NAME:-unknown}' (${HYDE_DISTRO_ID:-unknown}). HyDE installer supports Arch-like distros (Arch/CachyOS/etc)."
+    exit 1
+fi
+
+print_log -sec "distro" -stat "detected" "${HYDE_DISTRO_NAME:-unknown} (${HYDE_DISTRO_ID:-unknown})"
+
 # grub
 if pkg_installed grub && [ -f /boot/grub/grub.cfg ]; then
     print_log -sec "bootloader" -b "detected :: " "grub..."
@@ -89,7 +96,7 @@ if [ -f /etc/pacman.conf ] && [ ! -f /etc/pacman.conf.hyde.bkp ]; then
     [ "${flg_DryRun}" -eq 1 ] || sudo sed -i "/^#Color/c\Color\nILoveCandy
     /^#VerbosePkgLists/c\VerbosePkgLists
     /^#ParallelDownloads/c\ParallelDownloads = 5" /etc/pacman.conf
-    [ "${flg_DryRun}" -eq 1 ] || sudo sed -i '/^#\[multilib\]/,+1 s/^#//' /etc/pacman.conf
+    # NOTE: multilib is intentionally left disabled for this fork.
 
     print_log -g "[PACMAN] " -b "update :: " "packages..."
     [ "${flg_DryRun}" -eq 1 ] || sudo pacman -Syyu
@@ -101,6 +108,10 @@ fi
 if grep -q '\[chaotic-aur\]' /etc/pacman.conf; then
     print_log -sec "CHAOTIC-AUR" -stat "skipped" "Chaotic AUR entry found in pacman.conf..."
 else
+    if [ "${HYDE_IS_CACHYOS:-0}" -eq 1 ]; then
+        print_log -sec "Chaotic-aur" -stat "Skipped" "CachyOS detected; Chaotic AUR will not be offered/installed."
+        is_chaotic_aur=false
+    else
     prompt_timer 120 "Would you like to install Chaotic AUR? [y/n] | q to quit "
     is_chaotic_aur=false
 
@@ -119,6 +130,7 @@ else
         is_chaotic_aur=true
         ;;
     esac
+    fi
     if [ "${is_chaotic_aur}" == true ]; then
         print_log -sec "Chaotic-aur" -stat "Installation" "Installing Chaotic AUR..."
         if [[ "${flg_DryRun}" -ne 1 ]]; then
@@ -128,4 +140,10 @@ else
     else
         print_log -sec "Chaotic-aur" -stat "Skipped" "Chaotic AUR installation skipped..."
     fi
+fi
+
+# Ensure minimal tooling for AUR helper builds exists (install_aur.sh needs git, makepkg)
+print_log -sec "deps" -stat "ensure" "git + base-devel (for AUR builds)"
+if [ "${flg_DryRun}" -ne 1 ]; then
+    sudo pacman -S --needed git base-devel
 fi

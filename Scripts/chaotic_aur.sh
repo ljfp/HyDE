@@ -190,7 +190,13 @@ revertAUR() {
 
 fresh() {
     clear
-    echo "Detected: Arch Linux"
+    if [ -r /etc/os-release ]; then
+        # shellcheck disable=SC1091
+        . /etc/os-release
+        echo "Detected: ${NAME:-${ID:-Unknown}}"
+    else
+        echo "Detected: Unknown"
+    fi
     cat <<CHAOS
 
 $(tput setaf 2)Would you like to add Chaotic AUR to your mirror list?$(tput sgr0)

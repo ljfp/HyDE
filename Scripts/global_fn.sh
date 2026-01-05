@@ -21,6 +21,35 @@ export cacheDir
 export aurList
 export shlList
 
+hyde_detect_distro() {
+    HYDE_DISTRO_ID="unknown"
+    HYDE_DISTRO_NAME="unknown"
+    HYDE_DISTRO_LIKE=""
+
+    if [ -r /etc/os-release ]; then
+        # shellcheck disable=SC1091
+        . /etc/os-release
+        HYDE_DISTRO_ID=${ID:-unknown}
+        HYDE_DISTRO_NAME=${NAME:-${HYDE_DISTRO_ID}}
+        HYDE_DISTRO_LIKE=${ID_LIKE:-}
+    fi
+
+    case " ${HYDE_DISTRO_ID} ${HYDE_DISTRO_LIKE} " in
+    *" arch "* | *"archlinux"*) HYDE_IS_ARCHLIKE=1 ;;
+    *) HYDE_IS_ARCHLIKE=0 ;;
+    esac
+
+    if [ "${HYDE_DISTRO_ID}" = "cachyos" ]; then
+        HYDE_IS_CACHYOS=1
+    else
+        HYDE_IS_CACHYOS=0
+    fi
+
+    export HYDE_DISTRO_ID HYDE_DISTRO_NAME HYDE_DISTRO_LIKE HYDE_IS_ARCHLIKE HYDE_IS_CACHYOS
+}
+
+hyde_detect_distro
+
 pkg_installed() {
     local PkgIn=$1
 
@@ -180,3 +209,4 @@ print_log() {
         cat
     fi
 }
+

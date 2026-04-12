@@ -16,21 +16,21 @@ scrDir="$(dirname "$(realpath "$0")")"
 source "$scrDir/globalcontrol.sh"
 case "$WALLPAPER_SET_FLAG" in
     p)
-        xtrans=$WALLPAPER_SWWW_TRANSITION_PREV
+        xtrans=$WALLPAPER_AWWW_TRANSITION_PREV
         xtrans="${xtrans:-"outer"}"
         ;;
     n)
-        xtrans=$WALLPAPER_SWWW_TRANSITION_NEXT
+        xtrans=$WALLPAPER_AWWW_TRANSITION_NEXT
         xtrans="${xtrans:-"grow"}"
         ;;
 esac
 selected_wall="$1"
 [ -z "$selected_wall" ] && echo "No input wallpaper" && exit 1
 selected_wall="$(readlink -f "$selected_wall")"
-if ! swww query &> /dev/null; then
-    swww-daemon --format xrgb &
+if ! awww query &> /dev/null; then
+    awww-daemon --format xrgb &
     disown
-    swww query && swww restore
+    awww query && awww restore
 fi
 is_video=$(file --mime-type -b "$selected_wall" | grep -c '^video/')
 if [ "$is_video" -eq 1 ]; then
@@ -40,9 +40,9 @@ if [ "$is_video" -eq 1 ]; then
     extract_thumbnail "$selected_wall" "$cached_thumb"
     selected_wall="$cached_thumb"
 fi
-xtrans=$WALLPAPER_SWWW_TRANSITION_DEFAULT
+xtrans=$WALLPAPER_AWWW_TRANSITION_DEFAULT
 [ -z "$xtrans" ] && xtrans="grow"
 [ -z "$wallFramerate" ] && wallFramerate=60
 [ -z "$wallTransDuration" ] && wallTransDuration=0.4
 print_log -sec "wallpaper" -stat "apply" "$selected_wall"
-swww img "$(readlink -f "$selected_wall")" --transition-bezier .43,1.19,1,.4 --transition-type "$xtrans" --transition-duration "$wallTransDuration" --transition-fps "$wallFramerate" --invert-y --transition-pos "$(hyprctl cursorpos | grep -E '^[0-9]' || echo "0,0")" &
+awww img "$(readlink -f "$selected_wall")" --transition-bezier .43,1.19,1,.4 --transition-type "$xtrans" --transition-duration "$wallTransDuration" --transition-fps "$wallFramerate" --invert-y --transition-pos "$(hyprctl cursorpos | grep -E '^[0-9]' || echo "0,0")" &
